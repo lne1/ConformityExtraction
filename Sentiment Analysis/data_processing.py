@@ -1,11 +1,6 @@
 # EECS 393: Experimental Evaluation of a Conformity Extraction System
 # author: Lucas Evans
 
-# To do:
-# read processed text from stopwordremoval
-# perform sentiment analysis
-# store updated content and sentiment value in JSON file
-
 import re
 import statistics
 import unirest
