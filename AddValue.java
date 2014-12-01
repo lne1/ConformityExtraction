@@ -194,10 +194,16 @@ public class AddValue {
 			
 			Iterator<String> i = users.keys();
 			
-			float [] homophily_total = new float[users.length()];
+			//float [] homophily_total = new float[users.length()];
 			//开始对于每一个
-			int num_homophily = 0;
+			//int num_homophily = 0;
 			
+			
+			
+			////////////////////////////////////////////////////////////////////
+			/////////////////////////////////////
+			/////////////////////////
+			////////////
 			while(i.hasNext()){
 				HashSet<String> result = new HashSet<String>();
 		        HashSet<String> userIDset = new HashSet<String>();
@@ -293,7 +299,7 @@ public class AddValue {
 				
 				
 				//for homophily analysis:
-				int[] neighbors_inner = new int[followingIDs.length];
+				/*int[] neighbors_inner = new int[followingIDs.length];
 				int inner_fraction = 0;
 				for(int index=0; index < followingIDs.length; index++){
 					
@@ -302,7 +308,7 @@ public class AddValue {
 							neighbors_inner[index] = users.getJSONObject(followingIDs[index]).getInt("inner_opinion");
 							if(neighbors_inner[index]-(users.getJSONObject(userID).getInt("inner_opinion")) <=1 ){
 								inner_fraction++;
-						}
+						}}else{
 						System.out.println("no inner opinion of this guy");
 						}
 					}
@@ -314,19 +320,88 @@ public class AddValue {
 				}
 				num_homophily++;
 				homophily_total[num_homophily] = inner_fraction/(users.getJSONObject(userID).getJSONArray("followingIDs").length());
-				
+				*/
 				
 			}
 			
-			hmout.write(homophily_total.toString());
-			hmout.flush();
-			hmout.close();
+			
 			
 			out.write(users.toString());
 			out.flush();
 			out.close();
 			sc.close();
-			System.out.println("it's done: /Users/zzc/Downloads/lebronjson.json");
+			
+			System.out.println("it's done: /Users/zzc/Downloads/lebronjson_final.json");
+			
+			
+			
+			//for homophily analysis:
+			/*if(i.hasNext()){
+				System.out.println("i has next");
+			}
+			else{
+				System.out.println("i has no next");
+			}
+			System.out.println(i.toString());
+			*/
+			
+			float [] homophily_total = new float[users.length()];
+			//开始对于每一个
+			int num_homophily = 0;
+			
+			
+			
+			
+			Iterator<String> ii = users.keys();
+			while(ii.hasNext()){
+				
+				String userID = ii.next().toString();
+				System.out.println(userID);
+				String[] followingIDs = new String[users.getJSONObject(userID).getJSONArray("followingIDs").length()];
+			    System.out.println("followingIDs's length: "+followingIDs.length);
+			int[] neighbors_inner = new int[followingIDs.length];
+			
+			int inner_fraction = 0;
+			
+			for(int index=0; index < followingIDs.length; index++){
+				followingIDs[index] = users.getJSONObject(userID).getJSONArray("followingIDs").getString(index);
+				if(users.has(followingIDs[index]) && (users.getJSONObject(followingIDs[index]).has("inner_opinion"))){
+					//System.out.println("enter this if clause");
+						neighbors_inner[index] = users.getJSONObject(followingIDs[index]).getInt("inner_opinion");
+						if(neighbors_inner[index]-(users.getJSONObject(userID).getInt("inner_opinion")) <=1 ){
+							inner_fraction++;
+							}
+				}
+				else{
+					
+					continue;
+				}
+			   	
+			}
+			
+			System.out.println("followingIDs 's length: "+(users.getJSONObject(userID).getJSONArray("followingIDs").length()));
+			if(users.getJSONObject(userID).getJSONArray("followingIDs").length()!=0){
+			homophily_total[num_homophily] = (float)inner_fraction/(float)(users.getJSONObject(userID).getJSONArray("followingIDs").length());
+			
+			System.out.println(inner_fraction +"||"+ (users.getJSONObject(userID).getJSONArray("followingIDs").length()));
+			}
+			else{
+				homophily_total[num_homophily] = 0;
+			}
+			
+			
+			hmout.append("the fraction of differences between this user "+userID+"'s inner opinion and his neighbors' inner opinion that is less than 1: "+String.valueOf(homophily_total[num_homophily])+"\n");
+			num_homophily++;
+			}
+			
+			
+			
+			hmout.write(homophily_total.toString());
+			hmout.flush();
+			hmout.close();
+			System.out.println("it's done: /Users/zzc/Downloads/lebronjson_homophily.json");
+			
+			
 			
 		} catch (FileNotFoundException | JSONException e) {
 			// TODO Auto-generated catch block
@@ -340,83 +415,3 @@ public class AddValue {
 	}
 
 }
-
-
-
-
-/*
-  
- // 第二阶段，计算groundtruth
-		
-		//calculate the majority neighboring opinion(for stubborn user)
-		File secFile = new File("/Users/zzc/Donwloads/lebronjson.json");
-		FileInputStream secFis = new FileInputStream(secFile);
-		Scanner secSc = new Scanner(secFis, "UTF-8");
-		StringBuilder inputStringBuilder = new StringBuilder();
-		String secInputStream = secSc.useDelimiter("\\n").next();
-		while(secSc.hasNext()){
-			inputStringBuilder.append(secInputStream);
-			inputStringBuilder.append("\\n");
-			secInputStream = secSc.useDelimiter("\\n").next();
-		}
-		
-		
-		//for(int l =0; l<inputStringBuilder.length(); l++){
-			
-		
-		
-		//String secInputStream = secSc.useDelimiter("\\n").next();
-		
-		
-		try {
-			JSONArray secUsers = new JSONArray(inputStringBuilder.toString());
-			//JSONArray followingIDs = new JSONArray();
-			String[] userID = new String[inputStringBuilder.length()];
-			
-			HashSet<String> result = new HashSet<String>();
-	        HashSet<String> userIDset = new HashSet<String>();
-			
-			for(int l =0; l<inputStringBuilder.length(); l++){
-				userIDset.add(secUsers.getJSONObject(l).getString("userID"));
-			}
-			
-			for(int l =0; l<inputStringBuilder.length(); l++){
-				JSONArray followingIDs = new JSONArray();
-				followingIDs = secUsers.getJSONObject(l).getJSONArray("followingIDs");
-				String groundTruth, estimatedA = new String();
-				String majorityNeighborOpinion = new String();
-				String finalMajorityOpinion = new String();
-				
-				
-				
-				for(int i = 0; i < followingIDs.length(); i++){
-					if(!userIDset.add(followingIDs.getString(i))){
-						result.add(followingIDs.getString(i));
-					}
-				}
-				//此时已经result里有followingIDs和userID一样的ID了
-				secUsers.getJSONObject(l);
-				
-			}
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		//
-		
-		//} 
- */
-
