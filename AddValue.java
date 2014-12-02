@@ -4,6 +4,7 @@
 package addjsonvalue;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -336,21 +337,12 @@ public class AddValue {
 			
 			
 			//for homophily analysis:
-			/*if(i.hasNext()){
-				System.out.println("i has next");
-			}
-			else{
-				System.out.println("i has no next");
-			}
-			System.out.println(i.toString());
-			*/
+			
 			
 			float [] homophily_total = new float[users.length()];
 			//开始对于每一个
 			int num_homophily = 0;
-			
-			
-			
+			ArrayList<Integer> al = new ArrayList<Integer>();
 			
 			Iterator<String> ii = users.keys();
 			while(ii.hasNext()){
@@ -363,12 +355,19 @@ public class AddValue {
 			
 			int inner_fraction = 0;
 			
+			int this_user_inner = users.getJSONObject(userID).getInt("inner_opinion");
+			int[] difference_between_them = new int[followingIDs.length];
+			
 			for(int index=0; index < followingIDs.length; index++){
 				followingIDs[index] = users.getJSONObject(userID).getJSONArray("followingIDs").getString(index);
 				if(users.has(followingIDs[index]) && (users.getJSONObject(followingIDs[index]).has("inner_opinion"))){
 					//System.out.println("enter this if clause");
 						neighbors_inner[index] = users.getJSONObject(followingIDs[index]).getInt("inner_opinion");
-						if(neighbors_inner[index]-(users.getJSONObject(userID).getInt("inner_opinion")) <=1 ){
+						
+						difference_between_them[index] = Math.abs(this_user_inner - neighbors_inner[index]);
+						al.add(difference_between_them[index]);
+						
+						if(neighbors_inner[index]-(users.getJSONObject(userID).getInt("inner_opinion")) <=1.5 ){
 							inner_fraction++;
 							}
 				}
@@ -392,10 +391,26 @@ public class AddValue {
 			
 			hmout.append("the fraction of differences between this user "+userID+"'s inner opinion and his neighbors' inner opinion that is less than 1: "+String.valueOf(homophily_total[num_homophily])+"\n");
 			num_homophily++;
+			
 			}
 			
+			System.out.println(al.size());
+			
+			int total_differences = 0;
+			
+			for(int num_of_differences = 0; num_of_differences < al.size(); num_of_differences++){
+				total_differences = total_differences + al.get(num_of_differences);
+				//System.out.println(al.get(num_of_differences));
+			}
+			
+			System.out.println("total_differences: " + total_differences);
+			
+			float ave_difference = (float)total_differences/(float)al.size();
 			
 			
+			String ave_dif = new String("The average difference in opinions between every pair of users connected by an edge in the Twitter graph of certain topic is: " + Float.toString(ave_difference));
+			
+			hmout.append(ave_dif);
 			hmout.write(homophily_total.toString());
 			hmout.flush();
 			hmout.close();
